@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vercel Deployment Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 { color: #333; }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 20px;
+      margin: 20px 0;
+      background-color: #f9f9f9;
+    }
+    .success { color: green; }
+    .error { color: red; }
+    code { 
+      background: #f0f0f0;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    button {
+      background: #0070f3;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 8px;
+    }
+    pre {
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Vercel Deployment Test Page</h1>
+  
+  <div class="card">
+    <h2>Environment Information</h2>
+    <div id="env-info"></div>
+  </div>
+
+  <div class="card">
+    <h2>API Test</h2>
+    <button id="test-api">Test API Endpoint</button>
+    <div id="api-result"></div>
+  </div>
+
+  <div class="card">
+    <h2>Script Loading Test</h2>
+    <div id="script-test"></div>
+  </div>
+
+  <script>
+    // Environment info
+    const envInfo = document.getElementById('env-info');
+    envInfo.innerHTML = `
+      <p><strong>URL:</strong> ${window.location.href}</p>
+      <p><strong>Host:</strong> ${window.location.host}</p>
+      <p><strong>Path:</strong> ${window.location.pathname}</p>
+      <p><strong>User Agent:</strong> ${navigator.userAgent}</p>
+      <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+    `;
+
+    // API test
+    document.getElementById('test-api').addEventListener('click', async () => {
+      const apiResult = document.getElementById('api-result');
+      apiResult.innerHTML = 'Testing API...';
+      
+      try {
+        const response = await fetch('/api/test');
+        const data = await response.json();
+        
+        apiResult.innerHTML = `
+          <p class="success">API test successful!</p>
+          <pre>${JSON.stringify(data, null, 2)}</pre>
+        `;
+      } catch (error) {
+        apiResult.innerHTML = `
+          <p class="error">API test failed!</p>
+          <pre>${error.message}</pre>
+        `;
+      }
+    });
+
+    // Script loading test
+    const scriptTest = document.getElementById('script-test');
+    const testScript = document.createElement('script');
+    testScript.src = '/test-script.js';
+    testScript.onerror = (e) => {
+      scriptTest.innerHTML = `
+        <p class="error">Failed to load test script!</p>
+        <pre>${e}</pre>
+      `;
+    };
+    
+    window.testScriptLoaded = () => {
+      scriptTest.innerHTML = `<p class="success">Test script loaded successfully!</p>`;
+    };
+    
+    document.head.appendChild(testScript);
+    scriptTest.innerHTML = 'Checking script loading...';
+  </script>
+</body>
+</html>

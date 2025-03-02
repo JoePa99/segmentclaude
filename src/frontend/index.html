@@ -6,9 +6,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MarketSegment - AI-Powered Market Segmentation</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      .error-box {
+        display: none;
+        margin: 20px;
+        padding: 20px;
+        border: 1px solid #f88;
+        background-color: #fee;
+        border-radius: 4px;
+        font-family: monospace;
+        white-space: pre-wrap;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="error-log" class="error-box"></div>
+    
+    <script>
+      // Simple error logger
+      window.onerror = function(message, source, lineno, colno, error) {
+        const errorLog = document.getElementById('error-log');
+        errorLog.style.display = 'block';
+        errorLog.innerHTML += `ERROR: ${message}\nAt: ${source}:${lineno}:${colno}\n${error && error.stack ? error.stack : ''}\n\n`;
+        console.error(message, source, lineno, colno, error);
+        return false;
+      };
+
+      // Also catch unhandled promise rejections
+      window.addEventListener('unhandledrejection', function(event) {
+        const errorLog = document.getElementById('error-log');
+        errorLog.style.display = 'block';
+        errorLog.innerHTML += `UNHANDLED PROMISE REJECTION: ${event.reason}\n\n`;
+        console.error('Unhandled rejection:', event.reason);
+      });
+
+      // Log React errors
+      window.addEventListener('error', function(event) {
+        if (event.error && event.error.stack && event.error.stack.includes('React')) {
+          const errorLog = document.getElementById('error-log');
+          errorLog.style.display = 'block';
+          errorLog.innerHTML += `REACT ERROR: ${event.error.message}\n${event.error.stack}\n\n`;
+        }
+      });
+
+      // Display environment info
+      document.addEventListener('DOMContentLoaded', function() {
+        const errorLog = document.getElementById('error-log');
+        errorLog.style.display = 'block';
+        errorLog.innerHTML += `ENVIRONMENT INFO:\nHost: ${window.location.host}\nPath: ${window.location.pathname}\nURL: ${window.location.href}\n\n`;
+      });
+    </script>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
