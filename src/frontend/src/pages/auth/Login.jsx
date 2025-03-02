@@ -83,6 +83,17 @@ const Login = () => {
               </Alert>
             )}
             
+            {/* Add a temporary demo info box */}
+            <Alert status="info" mb={4} borderRadius="md">
+              <AlertIcon />
+              <Box>
+                <AlertTitle>Demo Account</AlertTitle>
+                <AlertDescription>
+                  You can log in with: demo@example.com / password123
+                </AlertDescription>
+              </Box>
+            </Alert>
+            
             <Formik
               initialValues={{ email: '', password: '' }}
               validationSchema={LoginSchema}

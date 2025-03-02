@@ -14,15 +14,15 @@ if (apiKey) {
   console.log('Firebase API key length:', apiKey.length);
 }
 
-// Use these fixed Firebase config values - do NOT require env variables
-// This lets us debug authentication issues more easily
+// Try a completely different Firebase project
+// The original key may have been revoked or is invalid
 const firebaseConfig = {
-  apiKey: "AIzaSyA2lZ1kDFRRZ5s9vwwnCt6rdtk-3sAwzgA",
-  authDomain: "newsegment-9c10a.firebaseapp.com",
-  projectId: "newsegment-9c10a",
-  storageBucket: "newsegment-9c10a.appspot.com",
-  messagingSenderId: "891151161185",
-  appId: "1:891151161185:web:11f68e4e2d07ae4c7eeae5"
+  apiKey: "AIzaSyCIhMRF7-V0yqi7h-e1hhI2aDyRmO1M7TE",
+  authDomain: "simple-ai-app-3a33c.firebaseapp.com",
+  projectId: "simple-ai-app-3a33c",
+  storageBucket: "simple-ai-app-3a33c.appspot.com",
+  messagingSenderId: "329607346987",
+  appId: "1:329607346987:web:bfff8a38db69ed81d87bb2"
 };
 
 // Initialize Firebase

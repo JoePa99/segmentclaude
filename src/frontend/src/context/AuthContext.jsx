@@ -81,6 +81,37 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setError(null);
+      
+      // Special handling for demo account
+      if (email === 'demo@example.com' && password === 'password123') {
+        // Create a demo user object (no actual Firebase auth)
+        const demoUser = {
+          uid: 'demo-user-123',
+          email: 'demo@example.com',
+          displayName: 'Demo User',
+          emailVerified: true,
+          isAnonymous: false,
+        };
+        
+        // Set the user in state
+        setCurrentUser(demoUser);
+        
+        // Create a demo profile
+        const demoProfile = {
+          firstName: 'Demo',
+          lastName: 'User',
+          email: 'demo@example.com',
+          organization: 'Demo Company',
+          createdAt: new Date(),
+          role: 'user'
+        };
+        
+        setUserProfile(demoProfile);
+        
+        return demoUser;
+      }
+      
+      // Regular Firebase authentication for non-demo users
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       return userCredential.user;
     } catch (error) {
