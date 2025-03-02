@@ -5,7 +5,8 @@
       "src": "src/frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "src/frontend/dist",
+        "buildCommand": "cd src/frontend && npm install && npm run build"
       }
     },
     {
@@ -16,18 +17,18 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "src/backend/simple.js"
+      "dest": "/src/backend/simple.js"
     },
     {
-      "src": "/(.*\\.(js|css|png|jpg|svg|ico|json|ttf|woff|woff2))",
-      "dest": "src/frontend/dist/$1"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
-      "dest": "src/frontend/dist/index.html"
+      "dest": "/src/frontend/dist/index.html"
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "VERCEL": "1"
   }
 }
