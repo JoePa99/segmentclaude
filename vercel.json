@@ -19,8 +19,12 @@
       "dest": "src/backend/simple.js"
     },
     {
-      "src": "/(.*)",
+      "src": "/(.*\\.(js|css|png|jpg|svg|ico|json|ttf|woff|woff2))",
       "dest": "src/frontend/dist/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "src/frontend/dist/index.html"
     }
   ],
   "env": {
