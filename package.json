@@ -1,0 +1,29 @@
+{
+  "name": "newsegment",
+  "version": "1.0.0",
+  "description": "LLM-powered market segmentation and synthetic focus groups",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "install:all": "npm install && cd src/frontend && npm install && cd ../backend && npm install",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd src/frontend && npm run dev",
+    "dev:backend": "cd src/backend && npm run dev",
+    "build": "cd src/frontend && npm run build",
+    "start": "cd src/backend && npm start"
+  },
+  "keywords": [
+    "market-research",
+    "segmentation",
+    "llm",
+    "focus-groups"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
+}
