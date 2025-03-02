@@ -14,7 +14,8 @@ const handleFirebaseAuthError = (error) => {
   console.error('Firebase auth error:', error.code, error.message);
   
   // Check if it's an API key error
-  if (error.code === 'auth/invalid-api-key') {
+  if (error.code === 'auth/invalid-api-key' || 
+      error.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
     console.error('FIREBASE CONFIG ERROR: Invalid API key. Check environment variables in Vercel.');
     return "Authentication service unavailable (API key error). Please contact support.";
   }
@@ -28,7 +29,8 @@ const handleFirebaseAuthError = (error) => {
     'auth/invalid-email': 'Invalid email format',
     'auth/too-many-requests': 'Too many unsuccessful login attempts. Please try again later.',
     'auth/network-request-failed': 'Network error. Please check your connection.',
-    'auth/internal-error': 'Authentication service error. Please try again later.'
+    'auth/internal-error': 'Authentication service error. Please try again later.',
+    'auth/api-key-not-valid.-please-pass-a-valid-api-key.': 'Firebase API key is invalid. Please check the API key in your environment variables.'
   };
   
   return errorMessages[error.code] || error.message || 'An unexpected authentication error occurred';
@@ -58,6 +60,12 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (err) {
           console.error('Error fetching user profile:', err);
+          // Check for invalid API key
+          if (err.code === 'auth/invalid-api-key' || 
+              err.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
+            console.error('FIREBASE API KEY ERROR:', err.code);
+            setError('Firebase API key is invalid. Please check your configuration.');
+          }
         }
       } else {
         setUserProfile(null);

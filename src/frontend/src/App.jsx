@@ -41,13 +41,13 @@ const theme = extendTheme({
 function App() {
   const [configError, setConfigError] = useState(false);
 
-  // Check for environment configuration errors
+  // Check for environment configuration errors - hardcode config for now
   useEffect(() => {
-    // Check if Firebase config is missing or invalid
-    const firebaseApiKey = import.meta.env.VITE_FIREBASE_API_KEY;
-    if (!firebaseApiKey) {
-      console.error('FIREBASE CONFIG ERROR: API key is missing.');
-      setConfigError('firebase');
+    // We're using hardcoded Firebase config now, so this check is less important
+    // But we'll log any configuration warnings
+    const hasApiKeys = import.meta.env.OPENAI_API_KEY && import.meta.env.ANTHROPIC_API_KEY;
+    if (!hasApiKeys) {
+      console.warn('Warning: API keys for OpenAI and/or Anthropic may be missing');
     }
   }, []);
 
