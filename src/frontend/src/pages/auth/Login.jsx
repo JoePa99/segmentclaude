@@ -41,7 +41,13 @@ const Login = () => {
       navigate('/');
     } catch (error) {
       console.error('Login error:', error);
-      setLoginError(error.message || 'Failed to login. Please check your credentials.');
+      
+      // Handle Firebase API key errors distinctly
+      if (error.code === 'auth/invalid-api-key') {
+        setLoginError('Unable to authenticate - Firebase configuration error. Please check the console or contact support.');
+      } else {
+        setLoginError(error.message || 'Failed to login. Please check your credentials.');
+      }
     } finally {
       actions.setSubmitting(false);
     }

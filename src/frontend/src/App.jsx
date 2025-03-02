@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ChakraProvider, extendTheme } from '@chakra-ui/react';
+import { ChakraProvider, extendTheme, Box, Text, Alert, AlertIcon, AlertTitle, AlertDescription, Link } from '@chakra-ui/react';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/common/PrivateRoute';
+import { useState, useEffect } from 'react';
 
 // Layouts
 import DashboardLayout from './components/layouts/DashboardLayout';
@@ -38,6 +39,55 @@ const theme = extendTheme({
 });
 
 function App() {
+  const [configError, setConfigError] = useState(false);
+
+  // Check for environment configuration errors
+  useEffect(() => {
+    // Check if Firebase config is missing or invalid
+    const firebaseApiKey = import.meta.env.VITE_FIREBASE_API_KEY;
+    if (!firebaseApiKey) {
+      console.error('FIREBASE CONFIG ERROR: API key is missing.');
+      setConfigError('firebase');
+    }
+  }, []);
+
+  if (configError) {
+    return (
+      <ChakraProvider theme={theme}>
+        <Box p={8} maxW="800px" mx="auto" mt={10}>
+          <Alert 
+            status="error" 
+            variant="solid" 
+            flexDirection="column" 
+            alignItems="center" 
+            justifyContent="center" 
+            textAlign="center" 
+            borderRadius="md"
+            py={6}
+          >
+            <AlertIcon boxSize="40px" mr={0} />
+            <AlertTitle mt={4} mb={1} fontSize="xl">
+              Configuration Error
+            </AlertTitle>
+            <AlertDescription maxWidth="md">
+              {configError === 'firebase' && (
+                <>
+                  <Text mb={4}>
+                    Firebase configuration is missing or invalid. The application cannot connect to authentication services.
+                  </Text>
+                  <Text fontSize="sm" color="white">
+                    This is likely due to missing environment variables in your Vercel deployment.
+                    Make sure VITE_FIREBASE_API_KEY and other Firebase configuration variables are set.
+                  </Text>
+                </>
+              )}
+            </AlertDescription>
+          </Alert>
+        </Box>
+      </ChakraProvider>
+    );
+  }
+
   return (
     <ChakraProvider theme={theme}>
       <AuthProvider>

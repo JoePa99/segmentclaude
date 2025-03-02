@@ -9,6 +9,31 @@ import {
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
+// Error handling function
+const handleFirebaseAuthError = (error) => {
+  console.error('Firebase auth error:', error.code, error.message);
+  
+  // Check if it's an API key error
+  if (error.code === 'auth/invalid-api-key') {
+    console.error('FIREBASE CONFIG ERROR: Invalid API key. Check environment variables in Vercel.');
+    return "Authentication service unavailable (API key error). Please contact support.";
+  }
+  
+  // Map Firebase errors to user-friendly messages
+  const errorMessages = {
+    'auth/user-not-found': 'No account found with this email address',
+    'auth/wrong-password': 'Incorrect password',
+    'auth/email-already-in-use': 'An account with this email already exists',
+    'auth/weak-password': 'Password should be at least 6 characters',
+    'auth/invalid-email': 'Invalid email format',
+    'auth/too-many-requests': 'Too many unsuccessful login attempts. Please try again later.',
+    'auth/network-request-failed': 'Network error. Please check your connection.',
+    'auth/internal-error': 'Authentication service error. Please try again later.'
+  };
+  
+  return errorMessages[error.code] || error.message || 'An unexpected authentication error occurred';
+};
+
 const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
@@ -51,8 +76,9 @@ export const AuthProvider = ({ children }) => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       return userCredential.user;
     } catch (error) {
-      console.error('Login error:', error);
-      setError(error.message || 'Login failed');
+      const errorMessage = handleFirebaseAuthError(error);
+      console.error('Login error:', error.code, errorMessage);
+      setError(errorMessage);
       throw error;
     }
   };
@@ -86,8 +112,9 @@ export const AuthProvider = ({ children }) => {
       
       return user;
     } catch (error) {
-      console.error('Registration error:', error);
-      setError(error.message || 'Registration failed');
+      const errorMessage = handleFirebaseAuthError(error);
+      console.error('Registration error:', error.code, errorMessage);
+      setError(errorMessage);
       throw error;
     }
   };
