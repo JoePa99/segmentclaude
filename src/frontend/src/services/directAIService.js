@@ -40,7 +40,7 @@ const generateWithOpenAI = async (prompt, systemPrompt, modelName = 'gpt-4') => 
       const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const proxyBaseUrl = isLocalDev 
         ? 'http://localhost:8000' 
-        : 'https://your-production-proxy-url.com'; // Update this with your deployed proxy URL
+        : ''; // In production on Vercel, the API is at the same domain
       
       log(`Using proxy at: ${proxyBaseUrl}`);
       

@@ -76,8 +76,13 @@ app.get('/api/test', (req, res) => {
   res.json({ message: 'API test endpoint is working!' });
 });
 
-// Start the server
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running on http://localhost:${port}`);
-  console.log(`OpenAI API key loaded:`, process.env.OPENAI_API_KEY ? 'Yes' : 'No');
-});
+// For non-Vercel environments, start the server
+if (process.env.VERCEL !== '1') {
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`Server running on http://localhost:${port}`);
+    console.log(`OpenAI API key loaded:`, process.env.OPENAI_API_KEY ? 'Yes' : 'No');
+  });
+}
+
+// Export the Express API for Vercel serverless functions
+export default app;
