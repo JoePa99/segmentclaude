@@ -14,7 +14,8 @@ import {
 
 const MODEL_OPTIONS = {
   anthropic: [
-    { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus - Best quality' },
+    { value: 'claude-3-5-sonnet', label: 'Claude 3.5 Sonnet - Best quality' },
+    { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus - High quality' },
     { value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet - Balanced' },
     { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku - Fast' },
   ],
@@ -53,7 +54,7 @@ const ModelSelector = ({
       <FormControl mb={4}>
         <FormLabel>AI Model</FormLabel>
         <Select value={modelName} onChange={(e) => onModelNameChange(e.target.value)}>
-          <option value="">Default ({modelProvider === 'anthropic' ? 'Claude 3 Opus' : 'GPT-4 Turbo'})</option>
+          <option value="">Default ({modelProvider === 'anthropic' ? 'Claude 3.5 Sonnet' : 'GPT-4 Turbo'})</option>
           {MODEL_OPTIONS[modelProvider].map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -89,7 +90,7 @@ const ModelSelector = ({
               value={summaryModelName} 
               onChange={(e) => onSummaryModelNameChange(e.target.value)}
             >
-              <option value="">Default ({(summaryModelProvider || modelProvider) === 'anthropic' ? 'Claude 3 Haiku' : 'GPT-3.5 Turbo'})</option>
+              <option value="">Default ({(summaryModelProvider || modelProvider) === 'anthropic' ? 'Claude 3.5 Sonnet' : 'GPT-3.5 Turbo'})</option>
               {MODEL_OPTIONS[summaryModelProvider || modelProvider].map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}

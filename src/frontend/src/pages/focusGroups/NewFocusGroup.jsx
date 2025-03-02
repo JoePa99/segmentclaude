@@ -137,15 +137,25 @@ const NewFocusGroup = () => {
           query(segmentQuery, where('projectId', '==', projectId))
         );
         
-        const segmentsList = segmentsQuerySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        // Extract segments from segmentations
+        let extractedSegments = [];
+        segmentsQuerySnapshot.docs.forEach(doc => {
+          const segmentation = doc.data();
+          if (segmentation.segments && Array.isArray(segmentation.segments)) {
+            // Add segmentation ID reference to each segment
+            const processedSegments = segmentation.segments.map(segment => ({
+              ...segment,
+              segmentationId: doc.id
+            }));
+            extractedSegments = [...extractedSegments, ...processedSegments];
+          }
+        });
         
-        setSegments(segmentsList);
+        console.log('Extracted segments for focus group:', extractedSegments);
+        setSegments(extractedSegments);
         
         // Check if project has segments
-        if (segmentsList.length === 0) {
+        if (extractedSegments.length === 0) {
           setError('This project does not have any segments. You need to generate segments before creating a focus group.');
           toast({
             title: 'No Segments Found',
@@ -318,6 +328,8 @@ const NewFocusGroup = () => {
         throw new Error('No segment available for focus group generation');
       }
       
+      console.log('Using segment for focus group:', segmentToUse.name, segmentToUse.id);
+      
       // Use the question that will be the main discussion topic
       // If multiple questions, use the first one as the main prompt
       const mainQuestion = values.questions.length > 0 ? values.questions[0] : 'What factors are most important to you when making a purchase decision?';
@@ -333,7 +345,15 @@ const NewFocusGroup = () => {
       };
       
       // Generate the focus group using AI
-      const modelSettings = project.modelSettings || { provider: 'anthropic', name: 'claude-3-opus-20240229' };
+      // Make sure we have valid model settings
+      const modelSettings = project.modelSettings || { provider: 'anthropic', name: 'claude-3-5-sonnet' };
+      console.log('Using model settings for focus group:', modelSettings);
+      
+      // If claude-3-5-sonnet has a date suffix, remove it
+      let modelName = modelSettings.name;
+      if (modelName && modelName.includes('claude-3-5-sonnet-')) {
+        modelName = 'claude-3-5-sonnet';
+      }
       
       // Generate focus group with AI
       const focusGroupResult = await generateFocusGroup(
@@ -344,9 +364,87 @@ const NewFocusGroup = () => {
         projectData,
         {
           modelProvider: modelSettings.provider,
-          modelName: modelSettings.name
+          modelName: modelName
         }
       );
+      
+      // Process the focus group transcript to match the expected structure
+      // The FocusGroupDetail component expects a specific structure
+      const processedTranscript = [];
+      
+      // Group transcript entries by moderator questions
+      let currentQuestion = null;
+      let currentResponses = [];
+      
+      console.log('Processing focus group transcript:', focusGroupResult.transcript);
+      
+      focusGroupResult.transcript.forEach((entry) => {
+        // If it's the moderator, start a new question
+        if (entry.speaker.toLowerCase().includes('moderator')) {
+          // Save previous question and responses
+          if (currentQuestion) {
+            processedTranscript.push({
+              question: currentQuestion,
+              responses: [...currentResponses]
+            });
+          }
+          
+          // Start new question
+          currentQuestion = entry.text;
+          currentResponses = [];
+        } else {
+          // It's a participant response
+          currentResponses.push({
+            participant: entry.speaker,
+            response: entry.text,
+            segment: entry.details || '',
+            details: entry.details || ''
+          });
+        }
+      });
+      
+      // Add the last question and responses
+      if (currentQuestion && currentResponses.length > 0) {
+        processedTranscript.push({
+          question: currentQuestion,
+          responses: [...currentResponses]
+        });
+      }
+      
+      // If we didn't parse any questions, create a default structure
+      if (processedTranscript.length === 0) {
+        // Use the first question from values
+        const defaultQuestion = values.questions[0] || "What factors are most important to you when making a purchase decision?";
+        
+        // Create a default transcript with all entries as responses
+        processedTranscript.push({
+          question: defaultQuestion,
+          responses: focusGroupResult.transcript.map(entry => ({
+            participant: entry.speaker,
+            response: entry.text,
+            segment: entry.details || '',
+            details: entry.details || ''
+          }))
+        });
+      }
+      
+      console.log('Processed transcript:', processedTranscript);
+      
+      // Format participants data in the expected structure
+      const processedParticipants = focusGroupResult.participants.map((participant, index) => {
+        // Extract details like age and occupation if available
+        const details = participant.match(/\((.*?)\)/);
+        const name = participant.replace(/\s*\(.*?\)\s*/, '');
+        
+        return {
+          id: `p${index + 1}`,
+          name: name,
+          segment: values.selectedSegments && values.selectedSegments.length > 0 
+            ? segmentToUse.name 
+            : 'Participant',
+          demographics: details ? details[1] : 'Consumer'
+        };
+      });
       
       // Create the focus group data structure
       const focusGroupData = {
@@ -363,9 +461,9 @@ const NewFocusGroup = () => {
         stimulus: stimulusData,
         stimulusDescription: values.stimulusDescription,
         
-        // AI-generated focus group data
-        participants: focusGroupResult.participants,
-        transcript: focusGroupResult.transcript,
+        // AI-generated focus group data - transformed for the UI
+        participants: processedParticipants,
+        transcript: processedTranscript,
         summary: focusGroupResult.summary,
         rawText: focusGroupResult.rawText,
         
@@ -605,26 +703,32 @@ const NewFocusGroup = () => {
                               {segments.map((segment) => (
                                 <Checkbox
                                   key={segment.id}
+                                  id={`segment-checkbox-${segment.id}`}
                                   isChecked={field.value && field.value.includes(segment.id)}
                                   onChange={(e) => {
-                                    if (!field.value) {
-                                      form.setFieldValue(field.name, e.target.checked ? [segment.id] : []);
-                                      return;
+                                    console.log(`Checkbox for segment ${segment.id} (${segment.name}) changed to ${e.target.checked}`);
+                                    
+                                    // Initialize field.value as empty array if undefined
+                                    const currentValue = field.value || [];
+                                    
+                                    // Create a new array instead of using Set
+                                    let newValue;
+                                    if (e.target.checked) {
+                                      // Add the id if checked
+                                      newValue = [...currentValue, segment.id];
+                                    } else {
+                                      // Remove the id if unchecked
+                                      newValue = currentValue.filter(id => id !== segment.id);
                                     }
                                     
-                                    const set = new Set(field.value);
-                                    if (e.target.checked) {
-                                      set.add(segment.id);
-                                    } else {
-                                      set.delete(segment.id);
-                                    }
-                                    form.setFieldValue(field.name, Array.from(set));
+                                    console.log('Setting field value to:', newValue);
+                                    form.setFieldValue(field.name, newValue);
                                   }}
                                   colorScheme="brand"
                                 >
                                   <HStack>
                                     <Text>{segment.name}</Text>
-                                    <Badge colorScheme="blue">{segment.size}</Badge>
+                                    <Badge colorScheme="blue">{segment.size || '10%'}</Badge>
                                   </HStack>
                                 </Checkbox>
                               ))}

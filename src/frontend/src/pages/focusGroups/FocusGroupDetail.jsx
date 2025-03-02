@@ -326,7 +326,7 @@ const FocusGroupDetail = () => {
                               <HStack>
                                 <Text fontWeight="bold">{participantName}</Text>
                                 <Badge colorScheme={getParticipantColor(participantIndex)} fontSize="xs">
-                                  {response.segment || "Participant"}
+                                  {response.details || response.segment || "Participant"}
                                 </Badge>
                               </HStack>
                               <Text mt={1}>{response.response || response.text}</Text>
