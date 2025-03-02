@@ -3,6 +3,7 @@
   "outputDirectory": "src/frontend/dist",
   "devCommand": "cd src/frontend && npm run dev",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/serverless.js" }
+    { "source": "/api/(.*)", "destination": "/api/serverless.js" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

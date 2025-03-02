@@ -42,6 +42,7 @@ const generateWithOpenAI = async (prompt, systemPrompt, modelName = 'gpt-4') => 
       const proxyBaseUrl = isLocalDev ? 'http://localhost:8000' : window.location.origin;
       
       log(`Using proxy at: ${proxyBaseUrl}`);
+      console.log(`OpenAI API endpoint: ${proxyBaseUrl}/api/openai`);
       
       // Create the messages array for the chat completion
       const messages = [];
@@ -247,6 +248,7 @@ const generateWithClaude = async (prompt, systemPrompt, modelName = 'claude-3-5-
       const proxyBaseUrl = isLocalDev ? 'http://localhost:8000' : window.location.origin;
       
       log(`Using Claude proxy at: ${proxyBaseUrl}`);
+      console.log(`Claude API endpoint: ${proxyBaseUrl}/api/anthropic`);
       
       // Create the request payload for Claude
       // Use a more minimal request format
