@@ -36,11 +36,10 @@ const generateWithOpenAI = async (prompt, systemPrompt, modelName = 'gpt-4') => 
     
     // First try our own proxy server
     try {
-      // Determine proxy server URL - use localhost in development
+      // Determine proxy server URL
       const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const proxyBaseUrl = isLocalDev 
-        ? 'http://localhost:8000' 
-        : ''; // In production on Vercel, the API is at the same domain
+      // For development use localhost, for production use the current origin
+      const proxyBaseUrl = isLocalDev ? 'http://localhost:8000' : window.location.origin;
       
       log(`Using proxy at: ${proxyBaseUrl}`);
       
@@ -242,11 +241,10 @@ const generateWithClaude = async (prompt, systemPrompt, modelName = 'claude-3-5-
     
     // First try our own proxy server
     try {
-      // Determine proxy server URL - use localhost in development
+      // Determine proxy server URL
       const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const proxyBaseUrl = isLocalDev 
-        ? 'http://localhost:8000' 
-        : ''; // In production on Vercel, the API is at the same domain
+      // For development use localhost, for production use the current origin
+      const proxyBaseUrl = isLocalDev ? 'http://localhost:8000' : window.location.origin;
       
       log(`Using Claude proxy at: ${proxyBaseUrl}`);
       

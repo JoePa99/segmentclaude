@@ -1,34 +1,6 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "src/frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "src/frontend/dist",
-        "buildCommand": "cd src/frontend && npm install && npm run build"
-      }
-    },
-    {
-      "src": "src/backend/simple.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/src/backend/simple.js"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/src/frontend/dist/index.html"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production",
-    "VERCEL": "1"
-  }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/serverless.js" },
+    { "source": "/(.*)", "destination": "/" }
+  ]
 }
