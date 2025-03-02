@@ -8,6 +8,13 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
+    // Fix for Vercel deployment
+    chunkSizeWarningLimit: 1600,
   },
   server: {
     port: 3000,
@@ -20,5 +27,7 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
-  }
+  },
+  // Fix for Vercel SPA deployment
+  base: '/'
 })
