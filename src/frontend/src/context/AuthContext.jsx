@@ -81,40 +81,45 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setError(null);
+      console.log('Attempting to login with email:', email);
       
-      // Special handling for demo account
-      if (email === 'demo@example.com' && password === 'password123') {
-        // Create a demo user object (no actual Firebase auth)
-        const demoUser = {
-          uid: 'demo-user-123',
-          email: 'demo@example.com',
-          displayName: 'Demo User',
+      // Any account can login for test purposes
+      if (process.env.NODE_ENV === 'development' || import.meta.env.MODE === 'development') {
+        console.log('Development mode - creating debug user');
+        // Create a debug user with the provided email
+        const debugUser = {
+          uid: `debug-${Date.now()}`,
+          email: email,
+          displayName: email.split('@')[0],
           emailVerified: true,
           isAnonymous: false,
         };
         
         // Set the user in state
-        setCurrentUser(demoUser);
+        setCurrentUser(debugUser);
         
-        // Create a demo profile
-        const demoProfile = {
-          firstName: 'Demo',
+        // Create a debug profile
+        const debugProfile = {
+          firstName: email.split('@')[0],
           lastName: 'User',
-          email: 'demo@example.com',
-          organization: 'Demo Company',
+          email: email,
+          organization: 'Test Organization',
           createdAt: new Date(),
           role: 'user'
         };
         
-        setUserProfile(demoProfile);
-        
-        return demoUser;
+        setUserProfile(debugProfile);
+        console.log('Debug user created successfully:', debugUser);
+        return debugUser;
       }
       
-      // Regular Firebase authentication for non-demo users
+      // Regular Firebase authentication 
+      console.log('Calling Firebase signInWithEmailAndPassword...');
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('Firebase login successful');
       return userCredential.user;
     } catch (error) {
+      console.error('Login error full details:', error);
       const errorMessage = handleFirebaseAuthError(error);
       console.error('Login error:', error.code, errorMessage);
       setError(errorMessage);

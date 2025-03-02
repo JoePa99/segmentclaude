@@ -83,13 +83,13 @@ const Login = () => {
               </Alert>
             )}
             
-            {/* Add a temporary demo info box */}
+            {/* Development mode notice */}
             <Alert status="info" mb={4} borderRadius="md">
               <AlertIcon />
               <Box>
-                <AlertTitle>Demo Account</AlertTitle>
+                <AlertTitle>Development Mode</AlertTitle>
                 <AlertDescription>
-                  You can log in with: demo@example.com / password123
+                  Enter any email and password to log in.
                 </AlertDescription>
               </Box>
             </Alert>
