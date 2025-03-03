@@ -58,37 +58,29 @@ const App = () => {
 
   // Login with Firebase
   const handleLogin = () => {
-    // Using our special test account that works with our test Firebase project
+    // Using a test account
     const testEmail = "test@example.com";
     const testPassword = "password123";
     
-    auth.signInWithEmailAndPassword(testEmail, testPassword)
+    setError(null);
+    
+    // Try to create the user first
+    auth.createUserWithEmailAndPassword(testEmail, testPassword)
+      .then(userCredential => {
+        console.log('Created new user:', userCredential.user);
+        return userCredential;
+      })
+      .catch(createError => {
+        console.log('User might already exist, trying to sign in');
+        // User might already exist, try signing in
+        return auth.signInWithEmailAndPassword(testEmail, testPassword);
+      })
       .then(userCredential => {
         console.log('Login successful:', userCredential.user);
       })
       .catch(loginError => {
         console.error('Login error:', loginError);
         setError(loginError.message || "Unknown login error");
-        
-        // If we get API key error, fall back to stub implementation
-        if (loginError.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
-          console.log('API key error detected, trying to use stub implementation');
-          // This will directly use our stub implementation
-          return Promise.resolve({
-            user: {
-              uid: 'emergency-fallback-user',
-              email: testEmail,
-              displayName: 'Emergency Fallback',
-              emailVerified: true
-            }
-          });
-        }
-      })
-      .then(fallbackCredential => {
-        if (fallbackCredential) {
-          console.log('Using fallback login:', fallbackCredential.user);
-          setUser(fallbackCredential.user);
-        }
       });
   };
 
