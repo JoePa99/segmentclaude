@@ -9,12 +9,31 @@ import {
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
-// Simple error handler for the mock Firebase
+// Error handling function
 const handleFirebaseAuthError = (error) => {
-  console.error('Firebase auth error:', error);
+  console.error('Firebase auth error:', error.code, error.message);
   
-  // Just return a generic message since we're using mock Firebase
-  return "Authentication error. Please try again.";
+  // Check if it's an API key error
+  if (error.code === 'auth/invalid-api-key' || 
+      error.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
+    console.error('FIREBASE CONFIG ERROR: Invalid API key. Check environment variables in Vercel.');
+    return "Authentication service unavailable (API key error). Please check environment variables.";
+  }
+  
+  // Map Firebase errors to user-friendly messages
+  const errorMessages = {
+    'auth/user-not-found': 'No account found with this email address',
+    'auth/wrong-password': 'Incorrect password',
+    'auth/email-already-in-use': 'An account with this email already exists',
+    'auth/weak-password': 'Password should be at least 6 characters',
+    'auth/invalid-email': 'Invalid email format',
+    'auth/too-many-requests': 'Too many unsuccessful login attempts. Please try again later.',
+    'auth/network-request-failed': 'Network error. Please check your connection.',
+    'auth/internal-error': 'Authentication service error. Please try again later.',
+    'auth/api-key-not-valid.-please-pass-a-valid-api-key.': 'Firebase API key is invalid. Check environment variables.'
+  };
+  
+  return errorMessages[error.code] || error.message || 'An unexpected authentication error occurred';
 };
 
 const AuthContext = createContext();
@@ -64,14 +83,7 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       console.log('Attempting to login with email:', email);
       
-      // Demo account special case
-      if (email === 'demo@example.com' && password === 'demo123') {
-        console.log('Using demo account');
-        // This code only runs if someone uses the exact demo credentials
-        // But we'll still use Firebase for auth
-      }
-      
-      // Regular Firebase authentication 
+      // Regular Firebase authentication
       console.log('Calling Firebase signInWithEmailAndPassword...');
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log('Firebase login successful');

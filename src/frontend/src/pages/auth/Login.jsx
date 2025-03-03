@@ -85,13 +85,13 @@ const Login = () => {
               </Alert>
             )}
             
-            {/* Mock Firebase info */}
+            {/* Demo account info */}
             <Alert status="info" mb={4} borderRadius="md">
               <AlertIcon />
               <Box>
-                <AlertTitle>Mock Firebase Mode</AlertTitle>
+                <AlertTitle>Demo Account</AlertTitle>
                 <AlertDescription>
-                  Firebase is completely simulated. Enter any email and password to log in.
+                  Use email: test@example.com / password: Test123! to log in
                 </AlertDescription>
               </Box>
             </Alert>
