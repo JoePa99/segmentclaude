@@ -1,5 +1,5 @@
-// Ultimate Firebase fix - using a reliable Firebase configuration
-console.log('Initializing Firebase with reliable configuration');
+// Firebase implementation using original project
+console.log('Initializing Firebase with original project');
 
 // Import Firebase core
 import { initializeApp } from 'firebase/app';
@@ -21,20 +21,19 @@ import { getStorage } from 'firebase/storage';
 let app, authInstance, dbInstance, storageInstance;
 
 try {
-  console.log('Setting up real Firebase...');
+  console.log('Setting up real Firebase with original project...');
   
-  // NEW Firebase configuration from a different project
-  // This is from a test project that has unrestricted API access
+  // Original Firebase configuration
   const firebaseConfig = {
-    apiKey: "AIzaSyCRkkPiyKwOp-ZYAAwMGT3bEA1B0pIKIq8",
-    authDomain: "test-project-8e241.firebaseapp.com",
-    projectId: "test-project-8e241",
-    storageBucket: "test-project-8e241.appspot.com",
-    messagingSenderId: "868296564174",
-    appId: "1:868296564174:web:eab53e9fc1dfc65c9d88d1"
+    apiKey: "AIzaSyDEWk9Y9U4SG-hKnBQIm9oHHvLAZRxMMW8",
+    authDomain: "segmentation-39ffb.firebaseapp.com",
+    projectId: "segmentation-39ffb",
+    storageBucket: "segmentation-39ffb.appspot.com",
+    messagingSenderId: "1094358749209",
+    appId: "1:1094358749209:web:7626b5c5b1ef7a51aca5b9"
   };
   
-  console.log('Using TEST Firebase config for troubleshooting');
+  console.log('Using original project config');
   
   // Initialize Firebase
   app = initializeApp(firebaseConfig);
@@ -80,24 +79,7 @@ const auth = {
     
     if (authInstance) {
       console.log('Using real Firebase signIn');
-      
-      // For test projects we allow any credentials
-      if (password === 'password123') {
-        console.log('Using special test credentials');
-        // For our test Firebase project - try to create the user first if it doesn't exist
-        return firebaseCreateUser(authInstance, email, password)
-          .then(userCredential => {
-            console.log('Created new test user');
-            return userCredential;
-          })
-          .catch(createError => {
-            console.log('User might already exist, trying sign in');
-            return firebaseSignIn(authInstance, email, password);
-          });
-      } else {
-        // Normal sign in
-        return firebaseSignIn(authInstance, email, password);
-      }
+      return firebaseSignIn(authInstance, email, password);
     } else {
       console.log('Using stub signIn');
       return Promise.resolve({
@@ -159,7 +141,7 @@ const auth = {
   }
 };
 
-// Create our wrapped Firestore API (simplified for testing)
+// Create our wrapped Firestore API
 const db = {
   _isStub: !dbInstance,
   
@@ -167,23 +149,28 @@ const db = {
   collection: (name) => {
     console.log(`Accessing collection: ${name}`);
     
-    // Always use stub implementation for simplicity
-    return {
-      doc: (id) => ({
-        get: () => Promise.resolve({
-          exists: () => false,
-          data: () => null,
-          id
+    if (dbInstance) {
+      // Use real Firestore
+      return dbInstance.collection(name);
+    } else {
+      // Use stub
+      return {
+        doc: (id) => ({
+          get: () => Promise.resolve({
+            exists: () => false,
+            data: () => null,
+            id
+          }),
+          set: (data) => Promise.resolve(),
+          update: (data) => Promise.resolve()
         }),
-        set: (data) => Promise.resolve(),
-        update: (data) => Promise.resolve()
-      }),
-      add: (data) => Promise.resolve({ id: 'doc-' + Date.now() })
-    };
+        add: (data) => Promise.resolve({ id: 'doc-' + Date.now() })
+      };
+    }
   }
 };
 
-// Create our wrapped Storage API (simplified for testing)
+// Create our wrapped Storage API
 const storage = {
   _isStub: !storageInstance,
   
@@ -191,21 +178,26 @@ const storage = {
   ref: (path) => {
     console.log(`Accessing storage path: ${path}`);
     
-    // Always use stub implementation for simplicity
-    return {
-      put: (file) => Promise.resolve({
-        ref: {
-          getDownloadURL: () => Promise.resolve('https://example.com/mock-url')
-        }
-      }),
-      child: (childPath) => ({
+    if (storageInstance) {
+      // Use real Storage
+      return storageInstance.ref(path);
+    } else {
+      // Use stub
+      return {
         put: (file) => Promise.resolve({
           ref: {
             getDownloadURL: () => Promise.resolve('https://example.com/mock-url')
           }
+        }),
+        child: (childPath) => ({
+          put: (file) => Promise.resolve({
+            ref: {
+              getDownloadURL: () => Promise.resolve('https://example.com/mock-url')
+            }
+          })
         })
-      })
-    };
+      };
+    }
   }
 };
 
