@@ -50,11 +50,18 @@
         }
       });
 
-      // Display environment info
+      // Display environment info at startup
       document.addEventListener('DOMContentLoaded', function() {
+        const rootElement = document.getElementById('root');
         const errorLog = document.getElementById('error-log');
-        errorLog.style.display = 'block';
-        errorLog.innerHTML += `ENVIRONMENT INFO:\nHost: ${window.location.host}\nPath: ${window.location.pathname}\nURL: ${window.location.href}\n\n`;
+        
+        // If React doesn't render anything (empty root)
+        setTimeout(function() {
+          if (!rootElement.children.length) {
+            errorLog.style.display = 'block';
+            errorLog.innerHTML += `APPLICATION FAILED TO RENDER\nENVIRONMENT INFO:\nHost: ${window.location.host}\nPath: ${window.location.pathname}\nURL: ${window.location.href}\n\n`;
+          }
+        }, 1000);
       });
     </script>
 
