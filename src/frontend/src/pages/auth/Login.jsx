@@ -85,13 +85,13 @@ const Login = () => {
               </Alert>
             )}
             
-            {/* Demo account info */}
+            {/* Offline mode notice */}
             <Alert status="info" mb={4} borderRadius="md">
               <AlertIcon />
               <Box>
-                <AlertTitle>Demo Account</AlertTitle>
+                <AlertTitle>Offline Mode</AlertTitle>
                 <AlertDescription>
-                  Use email: test@example.com / password: Test123! to log in
+                  Firebase connection bypassed. Enter any email and password to login.
                 </AlertDescription>
               </Box>
             </Alert>
