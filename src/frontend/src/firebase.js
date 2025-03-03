@@ -11,14 +11,15 @@ const env = import.meta.env;
 console.log('Environment mode:', env.MODE);
 console.log('Loading Firebase config from environment variables');
 
-// Properly load Firebase config from env variables with fallbacks
+// HARDCODED Firebase config for segmentation-39ffb project
+// Using explicit hardcoded values to eliminate any configuration issues
 const firebaseConfig = {
-  apiKey: env.VITE_FIREBASE_API_KEY,
-  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: env.VITE_FIREBASE_APP_ID
+  apiKey: "AIzaSyDEWk9Y9U4SG-hKnBQIm9oHHvLAZRxMMW8",
+  authDomain: "segmentation-39ffb.firebaseapp.com",
+  projectId: "segmentation-39ffb",
+  storageBucket: "segmentation-39ffb.appspot.com",
+  messagingSenderId: "1094358749209",
+  appId: "1:1094358749209:web:7626b5c5b1ef7a51aca5b9"
 };
 
 // Log config to verify (without showing full key)
