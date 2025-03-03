@@ -9,31 +9,12 @@ import {
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
-// Error handling function
+// Simple error handler for the mock Firebase
 const handleFirebaseAuthError = (error) => {
-  console.error('Firebase auth error:', error.code, error.message);
+  console.error('Firebase auth error:', error);
   
-  // Check if it's an API key error
-  if (error.code === 'auth/invalid-api-key' || 
-      error.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
-    console.error('FIREBASE CONFIG ERROR: Invalid API key. Check environment variables in Vercel.');
-    return "Authentication service unavailable (API key error). Please contact support.";
-  }
-  
-  // Map Firebase errors to user-friendly messages
-  const errorMessages = {
-    'auth/user-not-found': 'No account found with this email address',
-    'auth/wrong-password': 'Incorrect password',
-    'auth/email-already-in-use': 'An account with this email already exists',
-    'auth/weak-password': 'Password should be at least 6 characters',
-    'auth/invalid-email': 'Invalid email format',
-    'auth/too-many-requests': 'Too many unsuccessful login attempts. Please try again later.',
-    'auth/network-request-failed': 'Network error. Please check your connection.',
-    'auth/internal-error': 'Authentication service error. Please try again later.',
-    'auth/api-key-not-valid.-please-pass-a-valid-api-key.': 'Firebase API key is invalid. Please check the API key in your environment variables.'
-  };
-  
-  return errorMessages[error.code] || error.message || 'An unexpected authentication error occurred';
+  // Just return a generic message since we're using mock Firebase
+  return "Authentication error. Please try again.";
 };
 
 const AuthContext = createContext();
