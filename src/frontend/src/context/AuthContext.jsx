@@ -83,35 +83,11 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       console.log('Attempting to login with email:', email);
       
-      // Any account can login for test purposes - enable for ALL environments temporarily
-      // This will let us bypass Firebase auth completely
-      if (true) { // Force bypass enabled for all environments
-        console.log('Development mode - creating debug user');
-        // Create a debug user with the provided email
-        const debugUser = {
-          uid: `debug-${Date.now()}`,
-          email: email,
-          displayName: email.split('@')[0],
-          emailVerified: true,
-          isAnonymous: false,
-        };
-        
-        // Set the user in state
-        setCurrentUser(debugUser);
-        
-        // Create a debug profile
-        const debugProfile = {
-          firstName: email.split('@')[0],
-          lastName: 'User',
-          email: email,
-          organization: 'Test Organization',
-          createdAt: new Date(),
-          role: 'user'
-        };
-        
-        setUserProfile(debugProfile);
-        console.log('Debug user created successfully:', debugUser);
-        return debugUser;
+      // Demo account special case
+      if (email === 'demo@example.com' && password === 'demo123') {
+        console.log('Using demo account');
+        // This code only runs if someone uses the exact demo credentials
+        // But we'll still use Firebase for auth
       }
       
       // Regular Firebase authentication 

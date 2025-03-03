@@ -85,13 +85,13 @@ const Login = () => {
               </Alert>
             )}
             
-            {/* Firebase bypass notice */}
+            {/* Demo account info */}
             <Alert status="info" mb={4} borderRadius="md">
               <AlertIcon />
               <Box>
-                <AlertTitle>Firebase Auth Bypassed</AlertTitle>
+                <AlertTitle>Demo Account</AlertTitle>
                 <AlertDescription>
-                  Firebase authentication is currently bypassed. Enter any email and password to log in without Firebase.
+                  Use demo@example.com / demo123 to try the application
                 </AlertDescription>
               </Box>
             </Alert>
