@@ -8,6 +8,7 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [firebaseReady, setFirebaseReady] = useState(false);
   const [error, setError] = useState(null);
+  const [mode, setMode] = useState('Loading...');
   
   // Add environment info
   const envInfo = {
@@ -21,6 +22,13 @@ const App = () => {
     try {
       console.log('Setting up Firebase auth listener...');
       
+      // Detect if we're using real Firebase or stub
+      if (typeof auth._getRecaptchaConfig === 'function') {
+        setMode('Using real Firebase');
+      } else {
+        setMode('Using Firebase stub (fallback mode)');
+      }
+      
       // Set up auth state listener
       const unsubscribe = auth.onAuthStateChanged((authUser) => {
         console.log('Auth state changed:', authUser ? 'User logged in' : 'No user');
@@ -28,16 +36,23 @@ const App = () => {
         setFirebaseReady(true);
       }, (authError) => {
         console.error('Auth error:', authError);
-        setError(authError.message);
+        setError(authError?.message || 'Unknown authentication error');
         setFirebaseReady(true);
       });
       
       // Clean up listener
-      return () => unsubscribe();
+      return () => {
+        try {
+          unsubscribe();
+        } catch (cleanupError) {
+          console.error('Error cleaning up auth listener:', cleanupError);
+        }
+      };
     } catch (setupError) {
       console.error('Error setting up auth:', setupError);
       setError(setupError.message);
       setFirebaseReady(true);
+      setMode('Error initializing Firebase');
     }
   }, []);
 
@@ -86,6 +101,7 @@ const App = () => {
         
         <Box p={5} bg="white" shadow="md" borderRadius="md">
           <Heading as="h2" size="md" mb={4}>Firebase Auth Status</Heading>
+          <Text mb={3} fontWeight="bold">Mode: {mode}</Text>
           <Text mb={3}>Firebase Ready: {firebaseReady ? 'Yes' : 'Initializing...'}</Text>
           <Text mb={3}>User Status: {user ? 'Logged In' : 'Logged Out'}</Text>
           
