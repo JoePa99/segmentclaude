@@ -23,10 +23,10 @@ const App = () => {
       console.log('Setting up Firebase auth listener...');
       
       // Detect if we're using real Firebase or stub
-      if (typeof auth._getRecaptchaConfig === 'function') {
-        setMode('Using real Firebase');
-      } else {
+      if (auth._isStub) {
         setMode('Using Firebase stub (fallback mode)');
+      } else {
+        setMode('Using real Firebase');
       }
       
       // Set up auth state listener

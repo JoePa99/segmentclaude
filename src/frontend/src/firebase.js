@@ -1,15 +1,17 @@
-// Real Firebase with enhanced error handling
-console.log('Initializing real Firebase with enhanced error handling');
+// Real Firebase with ES module imports
+console.log('Initializing Firebase with ES module imports');
 
 // Import Firebase modules with try/catch
-let firebase, auth, db, storage;
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
+
+// Initialize with try/catch and fallback
+let auth, db, storage;
 
 try {
-  // Import Firebase modules
-  const firebaseApp = require('firebase/app');
-  require('firebase/auth');
-  require('firebase/firestore');
-  require('firebase/storage');
+  console.log('Setting up real Firebase...');
   
   // Your web app's Firebase configuration
   const firebaseConfig = {
@@ -20,38 +22,29 @@ try {
     messagingSenderId: "1094358749209",
     appId: "1:1094358749209:web:7626b5c5b1ef7a51aca5b9"
   };
-
+  
   console.log('Firebase config loaded:', Object.keys(firebaseConfig).join(', '));
   
-  // Initialize Firebase with try/catch
-  try {
-    // Check if Firebase is already initialized
-    if (!firebaseApp.apps || !firebaseApp.apps.length) {
-      console.log('Initializing new Firebase app');
-      firebase = firebaseApp.initializeApp(firebaseConfig);
-    } else {
-      console.log('Using existing Firebase app');
-      firebase = firebaseApp.apps[0];
-    }
-    
-    // Get services
-    auth = firebase.auth();
-    db = firebase.firestore();
-    storage = firebase.storage();
-    
-    console.log('Firebase services initialized successfully');
-  } catch (initError) {
-    console.error('Error initializing Firebase:', initError);
-    throw new Error(`Firebase initialization error: ${initError.message}`);
-  }
-} catch (importError) {
-  console.error('Error importing Firebase modules:', importError);
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  console.log('Firebase app initialized:', app.name);
   
-  // Provide mock implementations as fallback
-  console.log('Using Firebase stubs as fallback');
+  // Get services
+  auth = getAuth(app);
+  db = getFirestore(app);
+  storage = getStorage(app);
   
-  // Mock auth
+  console.log('Firebase services initialized successfully!');
+  
+} catch (error) {
+  console.error('Error initializing real Firebase:', error);
+  
+  // Fallback to stub implementation
+  console.log('Falling back to stub implementation');
+  
+  // Create stub auth
   auth = {
+    _isStub: true,
     currentUser: null,
     onAuthStateChanged: (callback) => {
       console.log('STUB: onAuthStateChanged called');
@@ -86,12 +79,13 @@ try {
     }
   };
   
-  // Mock db
+  // Create stub db
   db = {
+    _isStub: true,
     collection: (name) => ({
       doc: (id) => ({
         get: () => Promise.resolve({
-          exists: false,
+          exists: () => false,
           data: () => null,
           id
         }),
@@ -100,8 +94,9 @@ try {
     })
   };
   
-  // Mock storage
+  // Create stub storage
   storage = {
+    _isStub: true,
     ref: () => ({
       put: () => Promise.resolve({
         ref: {
@@ -112,5 +107,4 @@ try {
   };
 }
 
-// Export the services (real or mock)
 export { auth, db, storage };
