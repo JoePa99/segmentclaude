@@ -1,36 +1,34 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import { 
-  createUserWithEmailAndPassword, 
+  auth, 
+  db,
+  onAuthStateChanged, 
   signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
   signOut, 
-  onAuthStateChanged,
-  updateProfile
-} from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+  updateProfile,
+  doc, 
+  getDoc, 
+  setDoc, 
+  updateDoc, 
+  collection
+} from '../firebase';
 
 // Error handling function
 const handleFirebaseAuthError = (error) => {
   console.error('Firebase auth error:', error.code, error.message);
   
-  // Check if it's an API key error
-  if (error.code === 'auth/invalid-api-key' || 
-      error.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
-    console.error('FIREBASE CONFIG ERROR: Invalid API key. Check environment variables in Vercel.');
-    return "Authentication service unavailable (API key error). Please check environment variables.";
-  }
-  
   // Map Firebase errors to user-friendly messages
   const errorMessages = {
     'auth/user-not-found': 'No account found with this email address',
     'auth/wrong-password': 'Incorrect password',
+    'auth/invalid-credential': 'Invalid login credentials',
     'auth/email-already-in-use': 'An account with this email already exists',
     'auth/weak-password': 'Password should be at least 6 characters',
     'auth/invalid-email': 'Invalid email format',
     'auth/too-many-requests': 'Too many unsuccessful login attempts. Please try again later.',
     'auth/network-request-failed': 'Network error. Please check your connection.',
-    'auth/internal-error': 'Authentication service error. Please try again later.',
-    'auth/api-key-not-valid.-please-pass-a-valid-api-key.': 'Firebase API key is invalid. Check environment variables.'
+    'auth/internal-error': 'Authentication service error. Please try again later.'
   };
   
   return errorMessages[error.code] || error.message || 'An unexpected authentication error occurred';
@@ -45,29 +43,52 @@ export const AuthProvider = ({ children }) => {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Log the AuthProvider initialization for debugging
+  console.log('AuthProvider initializing...');
 
   // Listen for auth state changes
   useEffect(() => {
+    console.log('Setting up auth state listener');
+    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('Auth state changed:', user ? `User ${user.uid}` : 'No user');
       setCurrentUser(user);
       
       if (user) {
+        console.log('User is logged in, fetching profile...');
         // Get user profile from Firestore
         try {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          const userRef = doc(db, 'users', user.uid);
+          console.log('Fetching user doc from Firestore:', userRef);
+          
+          const userDoc = await getDoc(userRef);
+          
           if (userDoc.exists()) {
+            console.log('User profile found in Firestore');
             setUserProfile(userDoc.data());
+          } else {
+            console.log('No user profile in Firestore, creating basic profile');
+            // Create a basic profile if none exists
+            const basicProfile = {
+              email: user.email,
+              displayName: user.displayName || user.email.split('@')[0],
+              createdAt: new Date()
+            };
+            setUserProfile(basicProfile);
+            
+            // Optionally save this basic profile to Firestore
+            try {
+              await setDoc(userRef, basicProfile);
+            } catch (error) {
+              console.error('Error creating basic profile:', error);
+            }
           }
         } catch (err) {
           console.error('Error fetching user profile:', err);
-          // Check for invalid API key
-          if (err.code === 'auth/invalid-api-key' || 
-              err.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
-            console.error('FIREBASE API KEY ERROR:', err.code);
-            setError('Firebase API key is invalid. Please check your configuration.');
-          }
         }
       } else {
+        console.log('No user logged in');
         setUserProfile(null);
       }
       
@@ -83,10 +104,20 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       console.log('Attempting to login with email:', email);
       
+      // Create user account if it doesn't exist (for demo purposes)
+      try {
+        console.log('Trying to create account first (in case it doesn\'t exist)');
+        await createUserWithEmailAndPassword(auth, email, password);
+        console.log('Created new user account');
+      } catch (createError) {
+        console.log('Account creation failed (likely already exists):', createError.code);
+        // Ignore error - user likely exists
+      }
+      
       // Regular Firebase authentication
       console.log('Calling Firebase signInWithEmailAndPassword...');
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      console.log('Firebase login successful');
+      console.log('Firebase login successful', userCredential.user);
       return userCredential.user;
     } catch (error) {
       console.error('Login error full details:', error);
