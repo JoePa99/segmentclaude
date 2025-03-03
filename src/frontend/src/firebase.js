@@ -14,13 +14,14 @@ try {
   console.log('Setting up real Firebase...');
   
   // Your web app's Firebase configuration
+  // Try loading config from environment variables first
   const firebaseConfig = {
-    apiKey: "AIzaSyDEWk9Y9U4SG-hKnBQIm9oHHvLAZRxMMW8",
-    authDomain: "segmentation-39ffb.firebaseapp.com",
-    projectId: "segmentation-39ffb",
-    storageBucket: "segmentation-39ffb.appspot.com",
-    messagingSenderId: "1094358749209",
-    appId: "1:1094358749209:web:7626b5c5b1ef7a51aca5b9"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDEWk9Y9U4SG-hKnBQIm9oHHvLAZRxMMW8",
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "segmentation-39ffb.firebaseapp.com",
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "segmentation-39ffb",
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "segmentation-39ffb.appspot.com",
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1094358749209",
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1094358749209:web:7626b5c5b1ef7a51aca5b9"
   };
   
   console.log('Firebase config loaded:', Object.keys(firebaseConfig).join(', '));
