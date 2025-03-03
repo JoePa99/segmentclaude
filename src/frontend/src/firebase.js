@@ -1,20 +1,29 @@
-// Real Firebase with ES module imports
-console.log('Initializing Firebase with ES module imports');
+// Fixed Firebase implementation using Firebase v9 modular API
+console.log('Initializing Firebase with modular API (v9)');
 
-// Import Firebase modules with try/catch
+// Import Firebase core
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+
+// Import auth modules
+import { 
+  getAuth, 
+  signInWithEmailAndPassword as firebaseSignIn,
+  createUserWithEmailAndPassword as firebaseCreateUser,
+  signOut as firebaseSignOut,
+  onAuthStateChanged as firebaseAuthState
+} from 'firebase/auth';
+
+// Import firestore modules
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 // Initialize with try/catch and fallback
-let auth, db, storage;
+let app, authInstance, dbInstance, storageInstance;
 
 try {
   console.log('Setting up real Firebase...');
   
-  // Your web app's Firebase configuration
-  // Try loading config from environment variables first
+  // Firebase configuration with env var fallback
   const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDEWk9Y9U4SG-hKnBQIm9oHHvLAZRxMMW8",
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "segmentation-39ffb.firebaseapp.com",
@@ -27,33 +36,47 @@ try {
   console.log('Firebase config loaded:', Object.keys(firebaseConfig).join(', '));
   
   // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
+  app = initializeApp(firebaseConfig);
   console.log('Firebase app initialized:', app.name);
   
-  // Get services
-  auth = getAuth(app);
-  db = getFirestore(app);
-  storage = getStorage(app);
+  // Get service instances
+  authInstance = getAuth(app);
+  dbInstance = getFirestore(app);
+  storageInstance = getStorage(app);
   
-  console.log('Firebase services initialized successfully!');
+  console.log('Firebase service instances obtained successfully');
   
 } catch (error) {
   console.error('Error initializing real Firebase:', error);
+  console.log('Will use stub implementation');
   
-  // Fallback to stub implementation
-  console.log('Falling back to stub implementation');
+  // Use null instances to trigger fallback
+  authInstance = null;
+  dbInstance = null;
+  storageInstance = null;
+}
+
+// Create our wrapped auth API
+const auth = {
+  // Flag to check if we're using stub implementation
+  get _isStub() {
+    return !authInstance;
+  },
   
-  // Create stub auth
-  auth = {
-    _isStub: true,
-    currentUser: null,
-    onAuthStateChanged: (callback) => {
-      console.log('STUB: onAuthStateChanged called');
-      setTimeout(() => callback(null), 0);
-      return () => {};
-    },
-    signInWithEmailAndPassword: (email, password) => {
-      console.log('STUB: signInWithEmailAndPassword', email);
+  // Current user
+  get currentUser() {
+    return authInstance ? authInstance.currentUser : null;
+  },
+  
+  // Sign in
+  signInWithEmailAndPassword: (email, password) => {
+    console.log(`Attempting to sign in with email: ${email}`);
+    
+    if (authInstance) {
+      console.log('Using real Firebase signIn');
+      return firebaseSignIn(authInstance, email, password);
+    } else {
+      console.log('Using stub signIn');
       return Promise.resolve({
         user: {
           uid: 'test-user-123',
@@ -62,13 +85,18 @@ try {
           emailVerified: true
         }
       });
-    },
-    signOut: () => {
-      console.log('STUB: signOut called');
-      return Promise.resolve();
-    },
-    createUserWithEmailAndPassword: (email, password) => {
-      console.log('STUB: createUserWithEmailAndPassword', email);
+    }
+  },
+  
+  // Create user
+  createUserWithEmailAndPassword: (email, password) => {
+    console.log(`Attempting to create user with email: ${email}`);
+    
+    if (authInstance) {
+      console.log('Using real Firebase createUser');
+      return firebaseCreateUser(authInstance, email, password);
+    } else {
+      console.log('Using stub createUser');
       return Promise.resolve({
         user: {
           uid: 'new-user-' + Date.now(),
@@ -78,34 +106,96 @@ try {
         }
       });
     }
-  };
+  },
   
-  // Create stub db
-  db = {
-    _isStub: true,
-    collection: (name) => ({
-      doc: (id) => ({
-        get: () => Promise.resolve({
-          exists: () => false,
-          data: () => null,
-          id
+  // Sign out
+  signOut: () => {
+    console.log('Attempting to sign out');
+    
+    if (authInstance) {
+      console.log('Using real Firebase signOut');
+      return firebaseSignOut(authInstance);
+    } else {
+      console.log('Using stub signOut');
+      return Promise.resolve();
+    }
+  },
+  
+  // Auth state listener
+  onAuthStateChanged: (callback) => {
+    console.log('Setting up auth state listener');
+    
+    if (authInstance) {
+      console.log('Using real Firebase auth state listener');
+      return firebaseAuthState(authInstance, callback);
+    } else {
+      console.log('Using stub auth state listener');
+      setTimeout(() => callback(null), 0);
+      return () => {};
+    }
+  }
+};
+
+// Create our wrapped Firestore API
+const db = {
+  _isStub: !dbInstance,
+  
+  // Collection reference
+  collection: (name) => {
+    console.log(`Accessing collection: ${name}`);
+    
+    if (dbInstance) {
+      // Use real Firestore
+      return dbInstance.collection(name);
+    } else {
+      // Use stub
+      return {
+        doc: (id) => ({
+          get: () => Promise.resolve({
+            exists: () => false,
+            data: () => null,
+            id
+          }),
+          set: (data) => Promise.resolve(),
+          update: (data) => Promise.resolve()
         }),
-        set: (data) => Promise.resolve()
-      })
-    })
-  };
+        add: (data) => Promise.resolve({ id: 'doc-' + Date.now() })
+      };
+    }
+  }
+};
+
+// Create our wrapped Storage API
+const storage = {
+  _isStub: !storageInstance,
   
-  // Create stub storage
-  storage = {
-    _isStub: true,
-    ref: () => ({
-      put: () => Promise.resolve({
-        ref: {
-          getDownloadURL: () => Promise.resolve('https://example.com/mock-url')
-        }
-      })
-    })
-  };
-}
+  // Storage reference
+  ref: (path) => {
+    console.log(`Accessing storage path: ${path}`);
+    
+    if (storageInstance) {
+      // Use real Storage
+      return storageInstance.ref(path);
+    } else {
+      // Use stub
+      return {
+        put: (file) => Promise.resolve({
+          ref: {
+            getDownloadURL: () => Promise.resolve('https://example.com/mock-url')
+          }
+        }),
+        child: (childPath) => ({
+          put: (file) => Promise.resolve({
+            ref: {
+              getDownloadURL: () => Promise.resolve('https://example.com/mock-url')
+            }
+          })
+        })
+      };
+    }
+  }
+};
+
+console.log(`Firebase initialization complete. Mode: ${auth._isStub ? 'STUB' : 'REAL'}`);
 
 export { auth, db, storage };
