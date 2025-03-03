@@ -1,147 +1,68 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+// Simple Firebase Stub for Testing
+console.log('Initializing Firebase stub for testing');
 
-console.log('Firebase initialization starting...');
-
-// Create an anonymous authentication solution
-class MockFirebase {
-  constructor() {
-    console.log('Creating mock Firebase solution');
-    
-    // Track if user is signed in
-    this._isSignedIn = false;
-    this._authListeners = [];
-    this._user = null;
-    this._userProfile = null;
-  }
-  
-  // Main authentication methods
-  signIn(email) {
-    console.log('Mock sign in with:', email);
-    this._isSignedIn = true;
-    
-    // Create user object
-    this._user = {
-      uid: `user-${Date.now()}`,
-      email: email,
-      displayName: email.split('@')[0],
-      emailVerified: true
-    };
-    
-    // Create user profile
-    this._userProfile = {
-      firstName: email.split('@')[0],
-      lastName: 'User',
-      email: email
-    };
-    
-    // Notify listeners
-    this._notifyAuthChange();
-    
-    return { user: this._user };
-  }
-  
-  signOut() {
-    console.log('Mock sign out');
-    this._isSignedIn = false;
-    this._user = null;
-    this._userProfile = null;
-    
-    // Notify listeners
-    this._notifyAuthChange();
-  }
-  
-  onAuthStateChanged(callback) {
-    console.log('Adding auth listener');
-    this._authListeners.push(callback);
-    
-    // Immediately call with current state
-    setTimeout(() => callback(this._user), 0);
-    
-    // Return unsubscribe function
-    return () => {
-      this._authListeners = this._authListeners
-        .filter(listener => listener !== callback);
-    };
-  }
-  
-  _notifyAuthChange() {
-    console.log('Notifying auth state change, user:', 
-      this._user ? this._user.email : 'null');
-    
-    this._authListeners.forEach(callback => {
-      setTimeout(() => callback(this._user), 0);
-    });
-  }
-}
-
-// Create mock Firebase implementation
-const mockFirebase = new MockFirebase();
-
-// Create the Firebase exports
-const app = { name: 'mock-app' };
-
-// Export auth API that wraps the mock implementation
+// Mock Firebase services
 const auth = {
-  // Create stub methods for Firebase auth
   currentUser: null,
-  
+  onAuthStateChanged: (callback) => {
+    console.log('Stub: onAuthStateChanged called');
+    // Call callback with null (not logged in)
+    setTimeout(() => callback(null), 0);
+    return () => {}; // Return unsubscribe function
+  },
   signInWithEmailAndPassword: (email, password) => {
-    console.log('Sign in attempt:', email);
-    return Promise.resolve(mockFirebase.signIn(email));
+    console.log('Stub: signInWithEmailAndPassword called with', email);
+    return Promise.resolve({
+      user: {
+        uid: 'test-user-123',
+        email,
+        displayName: email.split('@')[0],
+        emailVerified: true
+      }
+    });
   },
-  
-  createUserWithEmailAndPassword: (email, password) => {
-    console.log('Create user attempt:', email);
-    return Promise.resolve(mockFirebase.signIn(email));
-  },
-  
   signOut: () => {
-    console.log('Sign out attempt');
-    mockFirebase.signOut();
+    console.log('Stub: signOut called');
     return Promise.resolve();
   },
-  
-  onAuthStateChanged: (callback) => {
-    return mockFirebase.onAuthStateChanged(callback);
+  createUserWithEmailAndPassword: (email, password) => {
+    console.log('Stub: createUserWithEmailAndPassword called with', email);
+    return Promise.resolve({
+      user: {
+        uid: 'new-test-user-' + Date.now(),
+        email,
+        displayName: null,
+        emailVerified: false
+      }
+    });
   }
 };
 
-// Export simple mock DB and storage
+// Mock Firestore
 const db = {
   collection: (name) => ({
     doc: (id) => ({
       get: () => Promise.resolve({
-        exists: true,
-        data: () => ({ name: 'Mock data' }),
+        exists: false,
+        data: () => null,
         id
       }),
-      set: (data) => Promise.resolve({ id })
-    }),
-    add: (data) => Promise.resolve({ 
-      id: `doc-${Date.now()}`,
-      get: () => Promise.resolve({
-        exists: true,
-        data: () => data,
-        id: `doc-${Date.now()}`
-      })
+      set: (data) => Promise.resolve()
     })
   })
 };
 
+// Mock Storage
 const storage = {
-  ref: (path) => ({
-    put: (file) => Promise.resolve({
+  ref: () => ({
+    put: () => Promise.resolve({
       ref: {
-        getDownloadURL: () => Promise.resolve(`https://example.com/${file.name}`)
+        getDownloadURL: () => Promise.resolve('https://example.com/mock-download-url')
       }
     })
   })
 };
 
-console.log('Mock Firebase exports ready');
+console.log('Firebase stub initialized successfully');
 
-export { app, auth, db, storage };
+export { auth, db, storage };
