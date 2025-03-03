@@ -1,14 +1,68 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
-import { ChakraProvider, Box, Text, extendTheme, Heading, VStack, Code, Alert, AlertIcon } from '@chakra-ui/react'
+import { ChakraProvider, Box, Text, extendTheme, Heading, VStack, Code, Alert, AlertIcon, Button } from '@chakra-ui/react'
+import { auth } from './firebase'
 
-// Super simple app for debugging
+// App with Firebase auth testing
 const App = () => {
+  const [user, setUser] = useState(null);
+  const [firebaseReady, setFirebaseReady] = useState(false);
+  const [error, setError] = useState(null);
+  
   // Add environment info
   const envInfo = {
     location: window.location.href,
     userAgent: navigator.userAgent,
     timestamp: new Date().toISOString()
+  };
+
+  // Test Firebase auth
+  useEffect(() => {
+    try {
+      console.log('Setting up Firebase auth listener...');
+      
+      // Set up auth state listener
+      const unsubscribe = auth.onAuthStateChanged((authUser) => {
+        console.log('Auth state changed:', authUser ? 'User logged in' : 'No user');
+        setUser(authUser);
+        setFirebaseReady(true);
+      }, (authError) => {
+        console.error('Auth error:', authError);
+        setError(authError.message);
+        setFirebaseReady(true);
+      });
+      
+      // Clean up listener
+      return () => unsubscribe();
+    } catch (setupError) {
+      console.error('Error setting up auth:', setupError);
+      setError(setupError.message);
+      setFirebaseReady(true);
+    }
+  }, []);
+
+  // Login with Firebase
+  const handleLogin = () => {
+    auth.signInWithEmailAndPassword('test@example.com', 'password123')
+      .then(userCredential => {
+        console.log('Login successful:', userCredential.user);
+      })
+      .catch(loginError => {
+        console.error('Login error:', loginError);
+        setError(loginError.message);
+      });
+  };
+
+  // Logout
+  const handleLogout = () => {
+    auth.signOut()
+      .then(() => {
+        console.log('Logout successful');
+      })
+      .catch(logoutError => {
+        console.error('Logout error:', logoutError);
+        setError(logoutError.message);
+      });
   };
 
   return (
@@ -22,6 +76,39 @@ const App = () => {
           <AlertIcon />
           This is a simplified version for debugging Firebase authentication issues
         </Alert>
+        
+        {error && (
+          <Alert status="error">
+            <AlertIcon />
+            {error}
+          </Alert>
+        )}
+        
+        <Box p={5} bg="white" shadow="md" borderRadius="md">
+          <Heading as="h2" size="md" mb={4}>Firebase Auth Status</Heading>
+          <Text mb={3}>Firebase Ready: {firebaseReady ? 'Yes' : 'Initializing...'}</Text>
+          <Text mb={3}>User Status: {user ? 'Logged In' : 'Logged Out'}</Text>
+          
+          {user && (
+            <Box p={3} bg="gray.50" borderRadius="md" mb={3}>
+              <Text fontWeight="bold">User Info:</Text>
+              <Code p={2} mt={2} display="block" whiteSpace="pre-wrap">
+                {JSON.stringify({
+                  uid: user.uid,
+                  email: user.email,
+                  displayName: user.displayName
+                }, null, 2)}
+              </Code>
+            </Box>
+          )}
+          
+          <Button colorScheme="blue" mr={3} onClick={handleLogin} isDisabled={!firebaseReady}>
+            Test Login
+          </Button>
+          <Button onClick={handleLogout} isDisabled={!firebaseReady || !user}>
+            Test Logout
+          </Button>
+        </Box>
         
         <Box p={5} bg="white" shadow="md" borderRadius="md">
           <Heading as="h2" size="md" mb={4}>Environment Information</Heading>
