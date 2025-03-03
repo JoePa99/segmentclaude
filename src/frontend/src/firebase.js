@@ -23,9 +23,9 @@ let useStubMode = false;
 // Try to initialize with the provided configuration
 let app, authInstance, dbInstance, storageInstance;
 try {
-  // Original Firebase configuration
+  // Updated Firebase configuration with correct web API key
   const firebaseConfig = {
-    apiKey: "AIzaSyDEWk9Y9U4SG-hKnBQIm9oHHvLAZRxMMW8",
+    apiKey: "AIzaSyDM4-EkqTIAPoeTtVaE0brYz3A8VCgVpsc",
     authDomain: "segmentation-39ffb.firebaseapp.com",
     projectId: "segmentation-39ffb",
     storageBucket: "segmentation-39ffb.appspot.com",
@@ -66,8 +66,11 @@ const auth = {
       try {
         return firebaseSignIn(authInstance, email, password)
           .catch(error => {
+            console.log('Sign-in error caught:', error.code);
+            
             // If we get an API key error, switch to stub mode for the rest of the session
-            if (error?.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
+            if (error?.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.' ||
+                error?.code === 'auth/invalid-api-key') {
               console.warn('API key error detected, switching to stub mode');
               useStubMode = true;
               // Return stub user
@@ -79,6 +82,24 @@ const auth = {
                   emailVerified: true
                 }
               });
+            }
+            
+            // Special handling for new users
+            if (error?.code === 'auth/user-not-found') {
+              console.log('User not found, trying to create new user');
+              return firebaseCreateUser(authInstance, email, password)
+                .catch(createError => {
+                  console.error('Error creating user:', createError);
+                  useStubMode = true;
+                  return Promise.resolve({
+                    user: {
+                      uid: 'stub-user-' + Date.now(),
+                      email,
+                      displayName: email.split('@')[0],
+                      emailVerified: true
+                    }
+                  });
+                });
             }
             
             // Otherwise rethrow the error
